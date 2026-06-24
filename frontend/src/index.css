@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  /* Charte Just For Future */
+  --color-brand-orange: #f18a21;
+  --color-brand-orange-hover: #d97512;
+  --color-brand-blue: #0081c4;
+  --color-brand-blue-dark: #006aa3;
+  --color-brand-green: #8cc63f;
+  --color-primary: #f18a21;
+  --color-primary-dark: #d97512;
+  --color-primary-light: #fde6cf;
+  --color-accent: #0081c4;
+  --color-danger: #dc2626;
+  --color-info: #0081c4;
+  --color-bg-main: #f4f8fb;
+  --color-bg-card: #ffffff;
+  --color-sidebar: #0c4a6e;
+  --color-sidebar-text: #e2f0f9;
+  --color-text-main: #0f172a;
+  --color-text-muted: #64748b;
+  --color-border: #e2e8f0;
+  --font-sans: "Montserrat", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+}
+
+@keyframes brand-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg-main);
+  background-image:
+    radial-gradient(ellipse 120% 80% at 100% -20%, rgb(0 129 196 / 0.08), transparent 50%),
+    radial-gradient(ellipse 80% 60% at 0% 100%, rgb(241 138 33 / 0.06), transparent 45%);
+  color: var(--color-text-main);
+  overflow-x: hidden;
+}
+
+.app-main-surface {
+  animation: brand-fade-in 0.45s ease-out;
+}
+
+#root {
+  min-height: 100%;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

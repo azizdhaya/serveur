@@ -1,0 +1,260 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  TECHNICIEN
+  COMMERCIAL
+}
+
+model User {
+  id          String    @id @default(cuid()) @map("_id")
+  nom         String
+  prenom      String
+  email       String    @unique
+  telephone   String?
+  password    String
+  role        Role      @default(TECHNICIEN)
+  actif       Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdBy   String?
+  lastLoginAt DateTime?
+
+  sessions Session[]
+  projets  Projet[]    @relation("AgentCommercial")
+  logs     ActionLog[]
+
+  @@index([role, actif])
+  @@index([createdAt])
+}
+
+model Session {
+  id           String   @id @default(cuid()) @map("_id")
+  userId       String
+  refreshToken String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt])
+}
+
+enum EtatDossier {
+  OUVERT
+  EN_NEGOCIATION
+  FINIE
+  ARCHIVE
+  ABANDONNE
+}
+
+enum StatutApprobation {
+  APPROUVE
+  PAS_ENCORE
+  NEANT
+  EN_ATTENTE
+  REJETE
+  ABANDONNE
+}
+
+enum TypeContrat {
+  PROGRAMME_PROSOL
+  HORS_PROGRAMME_PROSOL
+}
+
+enum TypeCompteur {
+  MONOPHASE
+  TRIPHASE
+}
+
+enum TypeProjet {
+  PHOTOVOLTAIQUE_CLASSIQUE
+  POMPAGE
+  ISOLE_AVEC_BATTERIES
+  AUTRE
+}
+
+enum ClassementDossier {
+  ARCHIVE
+  NON_ARCHIVE
+}
+
+model Projet {
+  id                       String            @id @default(cuid()) @map("_id")
+  codeBarres               String?
+  reference                String            @unique
+  abonnes                  String
+  email                    String?
+  cin                      String?
+  contact                  String?
+  coordonneesGps           String?
+  adresseLieuImplantation  String?
+  presenteParMF            String?
+  district                 String?
+  gouvernorat              String?
+  delegation               String?
+  municipalite             String?
+  typeProjet               TypeProjet        @default(PHOTOVOLTAIQUE_CLASSIQUE)
+  etatDossier              EtatDossier       @default(OUVERT)
+  classementDossier        ClassementDossier @default(NON_ARCHIVE)
+  commentaire              String?
+  approbationCommerciale   StatutApprobation @default(PAS_ENCORE)
+  approbationTechnique     StatutApprobation @default(PAS_ENCORE)
+  executionInstallation    String?
+  reception                String?
+  procesVerbal             String?
+  contratAchat             TypeContrat?
+  montantFinancement       Float?
+  tauxInteret              Float?
+  banque                   String?
+  agentCommercialId        String?
+  /** Agent hors liste utilisateurs (ex. « Autre » ou nom libre). */
+  agentCommercialAutre     String?
+  agentCommercial          User?             @relation("AgentCommercial", fields: [agentCommercialId], references: [id])
+  puissanceInstallee       Float?
+  typeCompteur             TypeCompteur?
+  numeroCompteur           String?
+  calibreDisjoncteur       String?
+  puissanceSouscrite       String?
+  productionPrevisionnelle Float?
+  consommationAnnuelle     Float?
+  nbModules                Int?
+  puUnitairePV             Float?
+  marquePV                 String?
+  modelePV                 String?
+  nbOnduleurs              Int?
+  puUnitaireOnd            Float?
+  /**
+   * Colonne Excel « PU OND si autre modèle (W) »
+   */
+  puOndSiAutreW            Float?
+  marqueOnd                String?
+  modeleOnd                String?
+  /**
+   * Colonne Excel « Autre modèle OND »
+   */
+  autreModeleOnd           String?
+  equipementSurMesure      String?
+  interventionSurMesure    String?
+  /**
+   * Colonne Excel « Rapport de puissance : »
+   */
+  rapportPuissance         String?
+  dateDepotDossier         DateTime?
+  dateApprobation          DateTime?
+  dateInstallation         DateTime?
+  dateDepotDemandeMES      DateTime?
+  datePaiementPoseCompteurProsol DateTime?
+  dateMES                  DateTime?
+  nPolice                  String?
+  nLotDebProsol            String?
+  saisieProsol             String?
+  nLotDeblocageSubvention  String?
+  deblocageProsol          String?
+  conditionSubvention      String?
+  saisieSubvention         String?
+  deblocageSubvention      String?
+  nDevis                   String?
+  dateDevis                DateTime?
+  nFacture                 String?
+  dateFacture              DateTime?
+  montantHT                Float?
+  tva                      Float?
+  montantTTC               Float?
+  montantTTCFinal          Float?
+  montantAutofinancement   Float?
+  fraisPoseCmptProsol      Float?
+  paiement1erFactureSTEG   Float?
+  paiement2emeFactureSTEG  Float?
+  fraisAugmentationCalibre Float?
+  fraisMutationElec        Float?
+  fraisMutationGaz         Float?
+  fraisPassageMonoTri      Float?
+  autresFrais              Float?
+  reglementClient          Float?
+  resteAPayer              Float?
+  subventionDemandee       Float?
+  echeances                Echeance[]
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+  logs                     ActionLog[]
+
+  @@index([etatDossier, classementDossier])
+  @@index([etatDossier, createdAt])
+  @@index([classementDossier, createdAt])
+  @@index([district, gouvernorat, delegation, municipalite])
+  @@index([agentCommercialId, createdAt])
+  @@index([contratAchat, banque])
+  @@index([contratAchat, createdAt])
+  @@index([agentCommercialId])
+  @@index([approbationCommerciale, approbationTechnique])
+  @@index([cin])
+  @@index([codeBarres])
+  @@index([nDevis])
+  @@index([nFacture])
+  @@index([typeCompteur])
+  @@index([createdAt, updatedAt])
+  @@index([dateDepotDossier, dateInstallation, dateMES])
+}
+
+model Echeance {
+  id            String    @id @default(cuid()) @map("_id")
+  projetId      String
+  numero        Int
+  montant       Float?
+  date          DateTime?
+  /** Libellé Excel mode_paiement (Avoir, Chèque, Espèce, …). */
+  modePaiement  String?
+  description   String?
+  projet        Projet    @relation(fields: [projetId], references: [id], onDelete: Cascade)
+
+  @@unique([projetId, numero])
+  @@index([date])
+}
+
+model ActionLog {
+  id        String   @id @default(cuid()) @map("_id")
+  userId    String
+  projetId  String?
+  action    String
+  details   Json?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  projet    Projet?  @relation(fields: [projetId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([projetId, createdAt])
+}
+
+model Societe {
+  id                String   @id @default(cuid()) @map("_id")
+  code              String   @unique
+  denomination      String   @default("")
+  nomCommercial     String   @default("")
+  adresseSiegeSocial String  @default("")
+  adresseActivite   String   @default("")
+  formeJuridique    String   @default("")
+  mf                String   @default("")
+  capitalSocial     String   @default("")
+  contactFixe       String   @default("")
+  contactFax        String   @default("")
+  contactMobile     String   @default("")
+  adresseEmail      String   @default("")
+  rib               String   @default("")
+  banque            String   @default("")
+  codeSteg          String   @default("")
+  codeAnme          String   @default("")
+  validiteAnme      String   @default("")
+  gerant            String   @default("")
+  pdfLogoDataUrl    String   @default("")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
